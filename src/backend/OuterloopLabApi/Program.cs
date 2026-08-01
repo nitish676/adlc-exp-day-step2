@@ -450,7 +450,7 @@ public sealed class CosmosArmProvisioner
             // SDK compatibility note: GetCosmosDBAccounts() returns Pageable<T> in this environment.
             // Enumerate to find the account; ARM provisioning is best-effort anyway.
             CosmosDBAccountResource? account = null;
-            await foreach (var acc in subscriptionResource.GetCosmosDBAccounts())
+            foreach (var acc in subscriptionResource.GetCosmosDBAccounts())
             {
                 if (string.Equals(acc.Data.Name, cosmosOptions.AccountName, StringComparison.OrdinalIgnoreCase))
                 {
@@ -463,7 +463,8 @@ public sealed class CosmosArmProvisioner
 
             // Best-effort SQL database/container provisioning.
             // Use dynamic to avoid hard-coding fragile SDK model types; any ARM RBAC issues are ignored.
-            dynamic sqlDatabases = account.GetSqlDatabases();
+            dynamic accountDyn = account;
+            dynamic sqlDatabases = accountDyn.GetSqlDatabases();
             await sqlDatabases.CreateOrUpdateAsync(WaitUntil.Completed, appDatabaseName, null);
 
             dynamic sqlDatabase = sqlDatabases.Get(appDatabaseName).Value;
