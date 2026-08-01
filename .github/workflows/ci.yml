@@ -48,6 +48,10 @@ jobs:
         run: dotnet restore
 
       - name: Run unit tests
+        env:
+          # VSTest can fail with: "Failed to negotiate protocol" in slower CI environments.
+          # 300000ms == 5 minutes.
+          VSTEST_CONNECTION_TIMEOUT: 300000
         run: dotnet test OuterloopLabApi.sln --verbosity normal
       
       - name: Build backend
