@@ -3,6 +3,7 @@ using Azure;
 using Azure.Identity;
 using Azure.ResourceManager;
 using Azure.ResourceManager.CosmosDB;
+using Azure.ResourceManager.Resources;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json.Serialization;
@@ -442,7 +443,13 @@ public sealed class CosmosArmProvisioner
 
             var armClient = new ArmClient(credential, subscriptionId);
 
-            var account = await armClient.GetCosmosDBAccounts().GetAsync(cosmosOptions.ResourceGroup, cosmosOptions.AccountName);
+            // CosmosDB ARM extension methods are defined on SubscriptionResource in the CosmosDB SDK.
+            var subscriptionResource = armClient.GetSubscriptionResource(
+                new ResourceIdentifier($"/subscriptions/{subscriptionId}"));
+
+            var account = await subscriptionResource
+                .GetCosmosDBAccounts()
+                .GetAsync(cosmosOptions.ResourceGroup, cosmosOptions.AccountName);
 
             // Best-effort SQL database/container provisioning.
             // Use dynamic to avoid hard-coding fragile SDK model types; any ARM RBAC issues are ignored.
